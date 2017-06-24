@@ -6,8 +6,7 @@ len(subs)
 
 first_sub = subs[0]
 
+print "hello"
 print first_sub.text;
 print first_sub.start.seconds;
 print first_sub.end.seconds;
-print first_sub.end.seconds;
-
