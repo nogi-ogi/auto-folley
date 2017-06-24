@@ -1,4 +1,4 @@
-import sys
+import sys, os
 from shutil import copyfile
 import subprocess
 import tempfile
@@ -14,11 +14,19 @@ def add_wav(time, wav, video, out="out.mkv"):
 def add_wavs(cues, video, out="out.mkv"):
     i = 0
     v = video
+    prev = None 
+    l = len(cues)
     for time, wav in cues:
+        if prev is None:
+            v = video
+        else:
+            v = prev
         tmp = tempfile.NamedTemporaryFile(suffix=".mkv").name
         print(tmp)
         add_wav(time, wav, v, out=tmp)
-        v = tmp
+        if prev is not None:
+            os.unlink(prev)
+        prev = tmp
     copyfile(tmp, out) 
     return(v)
 
