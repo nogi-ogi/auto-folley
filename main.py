@@ -6,7 +6,7 @@ import json
 import numpy
 
 nlp = spacy.load('en_core_web_md')
-subs = pysrt.open('subtitles/taxi_driver.srt')
+subs = pysrt.open('subtitles/haine.srt', encoding='iso-8859-1')
 
 len(subs)
 
@@ -22,7 +22,7 @@ cues = []
 rawTings = []
 rawScores = []
 
-target = nlp(u'happy')
+target = nlp(u'annoy')
 
 def parse_cue(sub):
     hours = sub.end.hours * 3600000
@@ -39,7 +39,7 @@ for sub in subs:
     score = target.similarity(nlp(sub.text))
     #print(sub.text, score)
     rawScores.append(score)
-    if score > 0.689: 
+    if score > 0.5: 
         print(sub.text, score)
     #    cues.append(parse_cue(sub))
 
