@@ -2,9 +2,10 @@ import spacy
 import pysrt
 import nltk
 import mix
+import numpy as np
 
 nlp = spacy.load('en_core_web_md')
-subs = pysrt.open('subtitles/taxi_driver.srt')
+subs = pysrt.open('subtitles/casablanca.srt', encoding='iso-8859-1')
 
 len(subs)
 
@@ -18,27 +19,44 @@ len(subs)
 
 cues = []
 
-target = nlp(u'funny')
+class emotion:
+    def __init__(self, wav, phrase, thresh):
+        self.wav = wav
+        self.phrase = phrase
+        self.vec = nlp(phrase)
+        self.thresh = thresh
 
-def parse_cue(sub):
+    def score(self, query):
+        return self.vec.similarity(nlp(query))
+
+emotions = [#emotion("laugh.wav", u'happy', 0.72),
+            emotion("awww.mp3", u'that\'s cute', 0.78),]
+emo_scores = {}
+def parse_cue(sub, emo):
     hours = sub.end.hours * 3600000
     minutes = sub.end.minutes * 60000
     seconds = sub.end.seconds * 1000
-    cue = (hours + minutes + seconds, "laugh.wav")
-    print("event: {}:{}:{}".format(sub.end.hours,sub.end.minutes,sub.end.seconds))
+    cue = (hours + minutes + seconds, emo)
+    print("\t{} event: {}:{}:{}".format(emo, sub.end.hours,sub.end.minutes,sub.end.seconds))
     return cue
 
 for sub in subs:
-#    if "porno" in sub.text or "organezized" in sub.text:
-   
-    score = target.similarity(nlp(sub.text))
-    if score > 0.70: 
-        print(sub.text, score)
-        cues.append(parse_cue(sub))
+    if not "kid" in sub.text and not "friendship" in sub.text:
+        continue
 
-print(cues)
+    n = nlp(sub.text) 
+
+    for emo in emotions:
+        score = emo.score(sub.text)
+        if emo.wav not in emo_scores:
+            emo_scores[emo.wav] = []
+        emo_scores[emo.wav].append(score)
+        if score > emo.thresh:
+            print(sub.text, score)
+            cues.append(parse_cue(sub, emo.wav))
+
+#print(cues)
 #ts, wav = cues[0]
-video = "taxi_driver.mkv"
-
+video = "casablanca.mkv"
 
 mix.add_wavs(cues, video)
