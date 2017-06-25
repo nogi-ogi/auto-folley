@@ -2,6 +2,8 @@
 
 ```python
 # Download spacy & model
+# see: https://spacy.io/docs/usage/
+
 #conda install spacy
 #python -m spacy download en
 ```
@@ -33,10 +35,11 @@ word.similarity(emotion)
 
 
 ```python
-emotions = ['happy', 'sad']
+emotions = [u'happy', u'sad']
 emotions = [nlp(e) for e in emotions]
 
-doc = "sunshine sun shine murder murders"
+doc = u'sunshine sun shine murder murders'
+
 doc = nlp(doc)
 
 # Which emotion
@@ -44,12 +47,12 @@ for word in doc:
     scores = [e.similarity(word) for e in emotions]
     idx = np.argmax(scores)
     
-    res_score = scores[idx]
-    res_emotion = emotions[idx]
-    if res_score==0:
+    top_score = scores[idx]
+    top_emotion = emotions[idx]
+    if top_score==0:
         print("Unknown -", word)
     else:
-        print(res_emotion, "-", res_score, word)
+        print(top_emotion, "-", top_score, word)
 ```
 
     Unknown - sunshine
