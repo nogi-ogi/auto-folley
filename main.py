@@ -2,6 +2,8 @@ import spacy
 import pysrt
 import nltk
 import mix
+import json
+import numpy
 
 nlp = spacy.load('en_core_web_md')
 subs = pysrt.open('subtitles/taxi_driver.srt')
@@ -17,8 +19,10 @@ len(subs)
 #print subs.slice(starts_after={'minutes': 2, 'seconds': 30}, ends_before={'minutes': 2, 'seconds': 40}).text;
 
 cues = []
+rawTings = []
+rawScores = []
 
-target = nlp(u'funny')
+target = nlp(u'happy')
 
 def parse_cue(sub):
     hours = sub.end.hours * 3600000
@@ -30,15 +34,38 @@ def parse_cue(sub):
 
 for sub in subs:
 #    if "porno" in sub.text or "organezized" in sub.text:
-   
+
+    rawTings.append(sub.text)
     score = target.similarity(nlp(sub.text))
-    if score > 0.70: 
+    #print(sub.text, score)
+    rawScores.append(score)
+    if score > 0.689: 
         print(sub.text, score)
-        cues.append(parse_cue(sub))
+    #    cues.append(parse_cue(sub))
 
-print(cues)
+#print(rawScores)
+#print(cues)
 #ts, wav = cues[0]
-video = "taxi_driver.mkv"
+#video = "taxi_driver.mkv"
 
+with open('raw_input_happy.txt', 'w') as outfile:
+    json.dump(rawScores, outfile)
 
-mix.add_wavs(cues, video)
+std_dev = numpy.std(rawScores)
+mean = numpy.mean(rawScores)
+
+top_five = []
+_TOP_SCORES = 5
+
+for score in rawScores:
+    if score > std_dev + mean:
+        if len(top_five) < _TOP_SCORES:
+             top_five.append(cues)
+        else:
+            if score > top_five[0]:
+                top_five[0] = score
+        top_five.sort()
+
+print top_five
+
+#mix.add_wavs(cues, video)
