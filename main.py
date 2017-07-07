@@ -2,56 +2,73 @@ import spacy
 import pysrt
 import nltk
 import mix
-import json
-import numpy
-'''
-nlp = spacy.load('en_core_web_md')
-subs = pysrt.open('subtitles/haine.srt', encoding='iso-8859-1')
+import numpy as np
 
-len(subs)
+_SUBTITLE_PATH = 'subtitles/taxi_driver.srt'
 
-#first_sub = subs[0]
 
-#print first_sub.text;
-#print str(first_sub.start.minutes) + " minutes and " + str(first_sub.start.seconds);
-#print str(first_sub.end.minutes) + " minutes and " + str(first_sub.end.seconds);
+def get_top_scores_and_timestamps (subtitle_path, e, n):
+    nlp = spacy.load('en_core_web_md')
+    subs = pysrt.open(subtitle_path, encoding='iso-8859-1')
 
-#print subs.slice(starts_after={'minutes': 2, 'seconds': 30}, ends_before={'minutes': 2, 'seconds': 40}).text;
+    cues = []
+    raw_scores = []
 
-cues = []
-rawTings = []
-rawScores = []
+    target = nlp(u(e.phrase))
 
-target = nlp(u'annoy')
+    for sub in subs:
+        score = e.score(sub.text)
+        raw_scores.append(score)
+        cues.append(parse_cue(sub, e.wav))
 
-def parse_cue(sub):
+    std_dev = np.std(raw_scores)
+    mean = np.mean(raw_scores)
+
+    raw_scores_and_cues = zip(raw_scores, cues)
+    return map(lambda x: x[1], sorted(raw_scores_and_cues)[-5:])
+
+cues = ()
+
+class emotion:
+    def __init__(self, wav, phrase):
+        self.wav = wav
+        self.phrase = phrase
+
+    def score(self, query):
+        return self.vec.similarity(nlp(query))
+
+emotions = [#emotion("laugh.wav", u'happy', 0.72),
+            emotion("awww.mp3", u'that\'s cute')]
+emo_scores = {}
+def parse_cue(sub, emo):
     hours = sub.end.hours * 3600000
     minutes = sub.end.minutes * 60000
     seconds = sub.end.seconds * 1000
-    cue = (hours + minutes + seconds, "laugh.wav")
+    cue = (hours + minutes + seconds, emo)
+    print("\t{} event: {}:{}:{}".format(emo, sub.end.hours,sub.end.minutes,sub.end.seconds))
     return cue
 
-for sub in subs:
-#    if "porno" in sub.text or "organezized" in sub.text:
+for emo in emotions:
 
-    rawTings.append(sub.text)
-    score = target.similarity(nlp(sub.text))
-    #print(sub.text, score)
-    rawScores.append(score)
-    #cues.append(parse_cue(sub))
-    #if score > 0.5:
-    #    print(sub.text, score)
+    '''
+    score = emo.score(sub.text)
+    if emo.wav not in emo_scores:
+        emo_scores[emo.wav] = []
+    emo_scores[emo.wav].append(score)
+    if score > emo.thresh:
+        print(sub.text, score)
+        cues.append(parse_cue(sub, emo.wav))
+    '''
+    top_picks = get_top_scores_and_timestamps(_SUBTITLE_PATH, emo, 5)
+    for top_pick in top_picks:
+        cues.append(top_pick, emo.wav)
 
-#print(rawScores)
+
 #print(cues)
 #ts, wav = cues[0]
-#video = "taxi_driver.mkv"
+video = "casablanca.mkv"
 
-with open('raw_input_happy.txt', 'w') as outfile:
-    json.dump(rawScores, outfile)
-
-std_dev = numpy.std(rawScores)
-mean = numpy.mean(rawScores)
+mix.add_wavs(cues, video)
 
 top_five = []
 _TOP_SCORES = 5

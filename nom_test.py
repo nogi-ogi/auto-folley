@@ -2,7 +2,6 @@
 
 import spacy
 import pysrt
-import nltk
 import mix
 import json
 import numpy
@@ -34,7 +33,7 @@ def clean_text(text):
 
 
 nlp = spacy.load('en_core_web_md')
-subs = pysrt.open('subtitles/haine.srt')
+subs = pysrt.open('subtitles/haine.srt', encoding='iso-8859-1')
 subs2 = pysrt.open('subtitles/taxi_driver.srt')
 
 len(subs)
@@ -80,8 +79,8 @@ pipe = Pipeline([("cleaner", predictors()),
 pipe.fit([x[0] for x in train], [x[1] for x in train]) 
 pred_data = pipe.predict([x[0] for x in test]) 
 for (sample, pred) in zip(test, pred_data):
-    print sample, pred 
-print "Accuracy:", accuracy_score([x[1] for x in test], pred_data)
+    print (sample, pred) 
+print ("Accuracy:", accuracy_score([x[1] for x in test], pred_data))
 
 #first_sub = subs[0]
 
